@@ -11,28 +11,27 @@ When you save a link, linkdrop stores the following **locally on your device** a
 - The URL, title, and favicon of pages you explicitly save.
 - An auto-detected category (Article, YouTube, Docs, GitHub, Social).
 - A "done / not done" flag and timestamps.
-- Your settings: the destination email address, the digest delivery time, the weekly recap day, and the Apps Script webhook URL you paste in.
+- Your settings: the destination email address, the digest delivery time, and the weekly recap day.
 
 linkdrop **does not**:
 
 - Read or transmit pages you have not explicitly saved.
 - Track browsing history.
-- Use cookies, analytics, advertising IDs, or any third-party SDKs.
-- Send data to any server operated by the author.
+- Use cookies, analytics, advertising IDs, or any third-party SDKs inside the extension.
 
 ## Where your email digest comes from
 
-linkdrop has no backend. To send email, you deploy a small Google Apps Script web app into **your own Google account** (one-time setup, ~5 minutes). The extension POSTs your queue to that web app over HTTPS, and the script calls Gmail's `MailApp.sendEmail` to deliver the digest to the address you configured.
+When a scheduled digest runs, the extension POSTs your saved queue (URLs, titles, categories) and your destination email address to the linkdrop digest API over HTTPS. That API sends the formatted email via [Resend](https://resend.com), a transactional email provider.
 
 This means:
 
-- Your queue is transmitted only to the webhook URL you paste into Settings.
-- Email is sent from your Gmail to the address you choose — the author of linkdrop never sees it.
-- You can revoke access at any time by deleting the Apps Script deployment.
+- Your queue is transmitted only to send the digest you requested.
+- The Resend API key is stored on the server, not in the extension.
+- You can stop digests at any time by clearing your email in Settings or uninstalling the extension.
 
 ## Data sharing
 
-We do not sell, rent, or share any data with third parties. There is no third party — the only network endpoint the extension talks to is the Apps Script URL you configure yourself.
+We do not sell or rent user data. The only third party involved in email delivery is Resend, used solely to deliver digest emails to the address you configure. Resend's privacy policy applies to their processing of outbound email.
 
 ## Permissions and why we need them
 
@@ -41,12 +40,12 @@ We do not sell, rent, or share any data with third parties. There is no third pa
 - `activeTab` — read the URL and title of the current tab when you click "Drop link".
 - `contextMenus` — add the right-click "Save to linkdrop" entry.
 - `notifications` — show a confirmation when a link is saved and surface email-send errors.
-- Host access to `script.google.com` / `script.googleusercontent.com` — POST your queue to your own Apps Script webhook.
+- Host access to the digest API domain — POST your queue when a digest is due or you click "Run daily digest now".
 
 ## Your choices
 
 - Clear all data: remove the extension, or use Chrome's extension storage controls.
-- Stop the email digest: clear the email field in Settings, or delete your Apps Script deployment.
+- Stop the email digest: clear the email field in Settings.
 - Open source: the full source is available so you can audit exactly what is sent and where.
 
 ## Contact

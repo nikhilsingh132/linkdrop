@@ -1,6 +1,8 @@
-# linkdrop · Apps Script webhook
+# linkdrop · Apps Script webhook (legacy / self-hosted)
 
-This tiny Google Apps Script is what powers the daily/weekly email digest.
+> **Note:** The Chrome Web Store build uses the managed digest API in `server/` instead. This folder remains for users who prefer to send email from their own Gmail with no third-party email provider.
+
+This tiny Google Apps Script is an optional self-hosted backend for the daily/weekly email digest.
 It is the only piece of "backend" linkdrop needs — no server, no database, no API keys baked into the extension.
 
 ## Deploy in 5 minutes

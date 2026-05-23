@@ -117,33 +117,42 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === WEEKLY_ALARM) await runWeeklyDigest()
 })
 
-async function runDailyDigest() {
+async function runDailyDigest({ manual = false } = {}) {
   const settings = await getSettings()
-  if (!settings.dailyEnabled || !settings.email || !settings.webhookUrl) return
+  if (!settings.email) {
+    if (manual) throw new Error('Enter your email in Settings first')
+    return
+  }
+  if (!settings.dailyEnabled && !manual) return
+
   const links = await getLinks()
   const active = links.filter((l) => l.status === 'active')
-  if (active.length === 0) return
+
+  if (active.length === 0) {
+    if (manual) throw new Error('Your queue is empty — drop a link first')
+    return
+  }
+
   try {
     await sendDigest({
-      webhookUrl: settings.webhookUrl,
       email: settings.email,
       kind: 'daily',
       payload: buildDailyPayload(links),
     })
     await setSettings({ lastDailySentAt: Date.now() })
   } catch (err) {
+    if (manual) throw err
     console.error('[linkdrop] daily digest failed:', err)
   }
 }
 
 async function runWeeklyDigest() {
   const settings = await getSettings()
-  if (!settings.weeklyEnabled || !settings.email || !settings.webhookUrl) return
+  if (!settings.weeklyEnabled || !settings.email) return
   const links = await getLinks()
   const stats = await getStats()
   try {
     await sendDigest({
-      webhookUrl: settings.webhookUrl,
       email: settings.email,
       kind: 'weekly',
       payload: buildWeeklyPayload(links, stats),
@@ -163,7 +172,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         await rescheduleAll(settings)
         sendResponse({ ok: true })
       } else if (msg?.type === 'runDaily') {
-        await runDailyDigest()
+        await runDailyDigest({ manual: true })
         sendResponse({ ok: true })
       } else {
         sendResponse({ ok: false, error: 'unknown message' })

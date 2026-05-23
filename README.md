@@ -12,7 +12,7 @@ A minimal Chrome extension that turns every page you open into a learnable item 
 - **Daily digest email** — at a time you pick, of links still in your queue.
 - **Weekly recap** — what you finished, what's left.
 - **Syncs across devices** via `chrome.storage.sync`.
-- **No keys in the extension bundle** — emails ship through a Google Apps Script web app you own.
+- **Simple setup** — users only enter their email; digests are sent via a managed API (Resend).
 
 ## Stack
 
@@ -22,7 +22,7 @@ A minimal Chrome extension that turns every page you open into a learnable item 
 | Build          | Vite 8 + `@crxjs/vite-plugin` (Manifest V3, HMR)         |
 | Storage        | `chrome.storage.sync`                                    |
 | Scheduling     | `chrome.alarms` (daily + weekly)                         |
-| Email delivery | Google Apps Script web app → `MailApp.sendEmail`         |
+| Email delivery | Cloudflare Worker + Resend (API key stays on the server) |
 
 ## Project layout
 
@@ -32,7 +32,8 @@ linkdrop/
 ├── index.html                  popup entry
 ├── options.html                settings page entry
 ├── public/icons/               16/48/128 PNGs (generated)
-├── apps-script/Code.gs         email webhook (deploy once to your Google account)
+├── server/                     Cloudflare Worker digest API (deploy once)
+├── apps-script/                legacy self-hosted option (optional)
 ├── scripts/build-icons.mjs     regenerate icons from inline SVG
 └── src/
     ├── popup/                  popup React app
@@ -46,13 +47,14 @@ linkdrop/
 
 ```bash
 npm install
-npm run dev          # crxjs dev server with HMR for the popup & options
+cp .env.example .env            # set VITE_DIGEST_API_URL (see server/README.md)
+npm run dev                       # crxjs dev server with HMR for the popup & options
 ```
 
 For a production build:
 
 ```bash
-npm run build        # output goes to dist/
+npm run build                     # output goes to dist/
 ```
 
 ### Load it into Chrome
@@ -65,17 +67,11 @@ npm run build        # output goes to dist/
 
 After any code change, re-run `npm run build` and hit the refresh icon for linkdrop on the extensions page.
 
-## Hooking up the email digest
+## Email digest setup
 
-The extension never holds an API key — instead it POSTs to a Google Apps Script web app that *you* deploy. Setup takes ~5 minutes and uses your own Gmail to send.
+**For extension users (Chrome Web Store):** install, open Settings, enter your email, pick a schedule, and hit **Run daily digest now**. No Apps Script or API keys required.
 
-Follow [`apps-script/README.md`](./apps-script/README.md), then in the extension:
-
-1. Click the gear icon → opens **Settings** page.
-2. Paste the Apps Script `/exec` URL into **Webhook URL**.
-3. Enter the email address you want digests delivered to.
-4. Pick a time and (optionally) a weekly day.
-5. Hit **Run daily digest now** to confirm — your inbox should ding within seconds.
+**For extension authors:** deploy the digest API once — see [`server/README.md`](./server/README.md). Set `VITE_DIGEST_API_URL` in `.env` before building the extension zip for the Web Store.
 
 ## Roadmap
 
@@ -83,7 +79,6 @@ Follow [`apps-script/README.md`](./apps-script/README.md), then in the extension
 - Notes / tags per link
 - Drag-to-reorder priority
 - Import from Pocket / Raindrop
-- Multi-user backend swap (Resend/Postmark) for Web Store distribution
 
 ## License
 

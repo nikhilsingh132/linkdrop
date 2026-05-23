@@ -15,7 +15,7 @@ linkdrop — read & watch later, with email digest
 ## Summary / short description (max 132 chars)
 
 ```
-Drop links to read or watch later. Get a daily email digest of your learning queue, sent through your own Gmail.
+Drop links to read or watch later. Get a daily email digest of your learning queue — just enter your email to start.
 ```
 
 ## Category
@@ -37,8 +37,8 @@ Click the toolbar icon — or right-click any page or link — and it's saved wi
 
 WHAT MAKES IT DIFFERENT
 
-• No accounts. No servers. No analytics.
-• Emails are sent from your own Gmail via a tiny Google Apps Script you deploy once — the extension never holds an API key.
+• No accounts. No analytics.
+• Simple setup: enter your email, pick a time, done.
 • Your queue syncs across devices via chrome.storage.sync.
 • Mark items "done" instead of deleting them — build a learning history.
 
@@ -53,22 +53,21 @@ FEATURES
 • Sync across browsers via chrome.storage.sync
 • "Run daily digest now" button to confirm delivery without waiting for the schedule
 
-SETUP (~5 MINUTES)
+SETUP (30 SECONDS)
 
 1. Install the extension.
-2. Open Settings, follow the linked Apps Script guide to deploy your own webhook.
-3. Paste the webhook URL and your destination email.
-4. Pick a delivery time. Hit "Run daily digest now" to confirm.
+2. Open Settings and enter your email.
+3. Pick a delivery time. Hit "Run daily digest now" to confirm.
 
 That's it. Drop links all day, get your digest tomorrow morning.
 
 PRIVACY
 
-linkdrop only stores the links you explicitly save plus your settings. It does not track browsing, does not use analytics, and has no third-party backend. Email delivery happens entirely inside your own Google account. Full privacy policy is linked from this listing.
+linkdrop only stores the links you explicitly save plus your settings. It does not track browsing, does not use analytics, and does not embed API keys in the extension. Email delivery uses a small server-side API (Resend). Full privacy policy is linked from this listing.
 
 OPEN SOURCE
 
-linkdrop is MIT-licensed. The full source — including the Apps Script — is available on GitHub so you can audit exactly what gets sent and where.
+linkdrop is MIT-licensed. The full source is available on GitHub so you can audit exactly what gets sent and where.
 ```
 
 ---
@@ -83,12 +82,12 @@ Save URLs the user explicitly chooses, and email them a digest of those saved li
 
 | Permission | Paste this |
 |---|---|
-| `storage` | Persists the user's saved link queue and their settings (email, schedule, webhook URL) across devices via chrome.storage.sync. |
+| `storage` | Persists the user's saved link queue and their settings (email, schedule) across devices via chrome.storage.sync. |
 | `alarms` | Schedules the daily digest and optional weekly recap at the time the user chooses in Settings. |
 | `activeTab` | Reads the URL and title of the current tab only when the user clicks "Drop link" in the popup. |
 | `contextMenus` | Adds a right-click "Save to linkdrop" entry on pages and links so the user can save without opening the popup. |
-| `notifications` | Shows a quick confirmation when a link is saved and surfaces errors if the email webhook fails. |
-| Host access to `script.google.com` and `script.googleusercontent.com` | POSTs the user's queue to the Google Apps Script web app that the user themselves deploys, so email can be sent from their own Gmail. The extension has no other backend. |
+| `notifications` | Shows a quick confirmation when a link is saved and surfaces errors if the digest email fails to send. |
+| Host access to digest API domain | POSTs the user's queue to the linkdrop digest API when a scheduled digest runs or the user clicks "Run daily digest now". The extension has no other backend. |
 
 ## Remote code
 
@@ -96,17 +95,16 @@ Save URLs the user explicitly chooses, and email them a digest of those saved li
 No, I am not using remote code.
 ```
 
-(All JS is bundled in the package — the only network call is a POST of JSON to the user's Apps Script URL.)
+(All JS is bundled in the package — the only network call is a POST of JSON to the digest API.)
 
 ## Data usage declarations (Privacy tab → "What user data will this extension collect?")
 
 Check these boxes:
 
 - [x] **Website content** — limited to URLs and titles of pages the user explicitly saves.
-- [x] **Personal communications** — only the destination email address the user enters in Settings.
-- [x] **Authentication information** — only the Apps Script webhook URL the user pastes in (functions as a personal endpoint).
+- [x] **Personal communications** — the destination email address the user enters in Settings.
 
-Do NOT check: Personally identifiable info, Health, Financial, Location, Web history, User activity.
+Do NOT check: Personally identifiable info, Health, Financial, Location, Web history, User activity, Authentication information.
 
 Then certify:
 
@@ -151,8 +149,16 @@ The Web Store requires a public URL, not a file in a zip. Easiest options:
 Suggested screenshots:
 1. Popup with 4–5 queued links across categories.
 2. Popup "Done" tab with a few completed items.
-3. Options/Settings page filled in.
+3. Options/Settings page with email filled in.
 4. A sample digest email in Gmail.
 5. The right-click context menu showing "Save to linkdrop".
 
 Capture at exactly 1280×800. On macOS: `cmd+shift+4`, draw, then resize/pad in Preview or any image editor.
+
+---
+
+## Before submitting
+
+1. Deploy the digest API — see `server/README.md`.
+2. Set `VITE_DIGEST_API_URL` in `.env` to your Worker URL.
+3. Run `npm run build` and upload `dist/` as the store package.

@@ -1,24 +1,40 @@
-export async function sendDigest({ webhookUrl, email, kind, payload }) {
-  if (!webhookUrl) throw new Error('Webhook URL is not configured')
+import { DIGEST_API_URL } from './config.js'
+import { getSettings } from './storage.js'
+
+export async function sendDigest({ email, kind, payload }) {
   if (!email) throw new Error('Recipient email is not configured')
 
-  const body = JSON.stringify({
-    to: email,
-    kind,
-    ...payload,
-  })
+  const { webhookUrl } = await getSettings()
+  const endpoint = webhookUrl?.trim() || DIGEST_API_URL?.trim()
 
-  // text/plain avoids browser preflight; Apps Script still reads postData.contents
-  const res = await fetch(webhookUrl.trim(), {
+  if (!endpoint) {
+    throw new Error(
+      'Email delivery is not configured. Paste a webhook URL in Settings or rebuild with VITE_DIGEST_API_URL.',
+    )
+  }
+
+  const body = JSON.stringify({ to: email, kind, ...payload })
+  const usingWebhook = Boolean(webhookUrl?.trim())
+
+  const res = await fetch(endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    headers: usingWebhook
+      ? { 'Content-Type': 'text/plain;charset=utf-8' }
+      : { 'Content-Type': 'application/json' },
     body,
-    redirect: 'follow',
+    ...(usingWebhook ? { redirect: 'follow' } : {}),
   })
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
-    throw new Error(`Email webhook returned ${res.status}: ${text.slice(0, 200)}`)
+    let message = text.slice(0, 200)
+    try {
+      const parsed = JSON.parse(text)
+      if (parsed?.error) message = parsed.error
+    } catch {
+      // keep raw text
+    }
+    throw new Error(`${usingWebhook ? 'Webhook' : 'Digest API'} returned ${res.status}: ${message}`)
   }
 
   return res.json().catch(() => ({ ok: true }))

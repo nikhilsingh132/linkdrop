@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { DEFAULT_SETTINGS, getSettings, setSettings } from '../lib/storage.js'
+import { DIGEST_API_URL } from '../lib/config.js'
+import { DEFAULT_SETTINGS, getLinks, getSettings, setSettings } from '../lib/storage.js'
 import Logo from '../components/Logo.jsx'
 
 const DAYS = [
@@ -46,9 +47,19 @@ export default function Options() {
     setMessage(null)
     setRunningDaily(true)
     try {
+      const links = await getLinks()
+      const activeCount = links.filter((l) => l.status === 'active').length
+      if (activeCount === 0) {
+        throw new Error('Your queue is empty — drop a link first')
+      }
+      await setSettings(form)
       const res = await chrome.runtime.sendMessage({ type: 'runDaily' })
-      if (res?.ok) setMessage({ kind: 'success', text: 'Daily digest triggered' })
-      else throw new Error(res?.error || 'Unknown error')
+      if (res?.ok) {
+        setMessage({
+          kind: 'success',
+          text: `Daily digest sent (${activeCount} link${activeCount === 1 ? '' : 's'}) — check your inbox`,
+        })
+      } else throw new Error(res?.error || 'Unknown error')
     } catch (err) {
       setMessage({ kind: 'error', text: String(err?.message || err) })
     } finally {
@@ -58,7 +69,8 @@ export default function Options() {
 
   if (loading) return null
 
-  const canSave = form.email && form.webhookUrl
+  const canSave =
+    Boolean(form.email?.trim()) && Boolean(DIGEST_API_URL || form.webhookUrl?.trim())
 
   return (
     <div className="mx-auto max-w-xl px-6 py-10 text-ink">
@@ -73,7 +85,7 @@ export default function Options() {
       </header>
 
       <Section title="Delivery" subtitle="Where should the digest emails go?">
-        <Field label="Your email">
+        <Field label="Your email" hint="Digests are sent to whatever address you enter here.">
           <input
             type="email"
             value={form.email}
@@ -84,8 +96,12 @@ export default function Options() {
         </Field>
 
         <Field
-          label="Webhook URL"
-          hint="Paste your Google Apps Script web app URL. See README for setup."
+          label="Webhook URL (optional)"
+          hint={
+            DIGEST_API_URL
+              ? 'Leave blank to use the built-in digest API. To send to any address without verifying a domain, deploy the Apps Script in apps-script/ and paste its /exec URL here — emails go out via your Gmail.'
+              : 'Deploy the Apps Script in apps-script/ and paste its /exec URL here.'
+          }
         >
           <input
             type="url"
@@ -171,7 +187,7 @@ export default function Options() {
           disabled={!canSave || runningDaily}
           className="rounded-lg border border-line px-4 py-2 text-[13px] font-medium text-ink hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {runningDaily ? 'Sending digest…' : 'Run daily digest now'}
+          {runningDaily ? 'Sending…' : 'Run daily digest now'}
         </button>
       </div>
 

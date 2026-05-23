@@ -21,7 +21,7 @@ export default function Popup() {
     ;(async () => {
       const [savedLinks, settings] = await Promise.all([getLinks(), getSettings()])
       setLinks(savedLinks)
-      setNeedsSetup(!settings.email || !settings.webhookUrl)
+      setNeedsSetup(!settings.email?.trim())
       setLoading(false)
     })()
 
@@ -30,7 +30,7 @@ export default function Popup() {
       if (changes.links) setLinks(changes.links.newValue || [])
       if (changes.settings) {
         const s = changes.settings.newValue || {}
-        setNeedsSetup(!s.email || !s.webhookUrl)
+        setNeedsSetup(!s.email?.trim())
       }
     }
     chrome.storage.onChanged.addListener(onChanged)
@@ -143,7 +143,7 @@ export default function Popup() {
           className="flex items-center justify-between border-b border-warn/40 bg-warn/10 px-4 py-2 text-left text-[12px] text-ink hover:bg-warn/15"
         >
           <span>
-            <strong>Finish setup</strong> · add email & webhook to get daily digests
+            <strong>Finish setup</strong> · add your email to get daily digests
           </span>
           <span className="text-mute">→</span>
         </button>

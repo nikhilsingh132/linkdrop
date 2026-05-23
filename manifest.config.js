@@ -1,6 +1,18 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import pkg from './package.json' with { type: 'json' }
 
+function digestApiHostPermission() {
+  const url = process.env.VITE_DIGEST_API_URL?.trim()
+  if (!url) return null
+  try {
+    return `${new URL(url).origin}/*`
+  } catch {
+    return null
+  }
+}
+
+const digestHost = digestApiHostPermission()
+
 export default defineManifest({
   manifest_version: 3,
   name: 'linkdrop',
@@ -26,6 +38,7 @@ export default defineManifest({
   },
   permissions: ['storage', 'alarms', 'activeTab', 'contextMenus', 'notifications'],
   host_permissions: [
+    ...(digestHost ? [digestHost] : []),
     'https://script.google.com/*',
     'https://script.googleusercontent.com/*',
   ],

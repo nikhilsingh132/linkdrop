@@ -1,0 +1,8 @@
+name = "linkdrop-digest"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Set secrets via: wrangler secret put RESEND_API_KEY
+# Optional plain-text var (or use wrangler secret for FROM_EMAIL too):
+# [vars]
+# FROM_EMAIL = "linkdrop <digest@yourdomain.com>"
