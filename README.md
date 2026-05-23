@@ -75,7 +75,7 @@ Follow [`apps-script/README.md`](./apps-script/README.md), then in the extension
 2. Paste the Apps Script `/exec` URL into **Webhook URL**.
 3. Enter the email address you want digests delivered to.
 4. Pick a time and (optionally) a weekly day.
-5. Hit **Send test email** to confirm — your inbox should ding within seconds.
+5. Hit **Run daily digest now** to confirm — your inbox should ding within seconds.
 
 ## Roadmap
 

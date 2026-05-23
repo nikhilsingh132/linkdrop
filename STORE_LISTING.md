@@ -51,14 +51,14 @@ FEATURES
 • Optional weekly recap with completion stats
 • Queue and Done tabs with search
 • Sync across browsers via chrome.storage.sync
-• Send-test-email button so you know it works before you wait a day
+• "Run daily digest now" button to confirm delivery without waiting for the schedule
 
 SETUP (~5 MINUTES)
 
 1. Install the extension.
 2. Open Settings, follow the linked Apps Script guide to deploy your own webhook.
 3. Paste the webhook URL and your destination email.
-4. Pick a delivery time. Hit "Send test email" to confirm.
+4. Pick a delivery time. Hit "Run daily digest now" to confirm.
 
 That's it. Drop links all day, get your digest tomorrow morning.
 

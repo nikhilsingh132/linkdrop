@@ -162,28 +162,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const settings = await getSettings()
         await rescheduleAll(settings)
         sendResponse({ ok: true })
-      } else if (msg?.type === 'sendTest') {
-        const settings = await getSettings()
-        const links = await getLinks()
-        await sendDigest({
-          webhookUrl: settings.webhookUrl,
-          email: settings.email,
-          kind: 'test',
-          payload: {
-            subject: 'linkdrop · test email',
-            activeCount: links.filter((l) => l.status === 'active').length,
-            items: links
-              .filter((l) => l.status === 'active')
-              .slice(0, 5)
-              .map((l) => ({
-                title: l.title,
-                url: l.url,
-                category: l.category,
-                addedAt: l.addedAt,
-              })),
-          },
-        })
-        sendResponse({ ok: true })
       } else if (msg?.type === 'runDaily') {
         await runDailyDigest()
         sendResponse({ ok: true })
