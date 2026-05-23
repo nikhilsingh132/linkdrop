@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { categorize, ALL_CATEGORIES, CATEGORY_META } from '../lib/categorize.js'
-import {
-  getLinks,
-  setLinks as persistLinks,
-  bumpCompletedThisWeek,
-  getSettings,
-} from '../lib/storage.js'
+import { getLinks, setLinks as persistLinks } from '../lib/storage.js'
 import LinkItem from '../components/LinkItem.jsx'
 import Logo from '../components/Logo.jsx'
 
@@ -15,23 +10,16 @@ export default function Popup() {
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
-  const [needsSetup, setNeedsSetup] = useState(false)
 
   useEffect(() => {
-    ;(async () => {
-      const [savedLinks, settings] = await Promise.all([getLinks(), getSettings()])
+    getLinks().then((savedLinks) => {
       setLinks(savedLinks)
-      setNeedsSetup(!settings.email?.trim())
       setLoading(false)
-    })()
+    })
 
     const onChanged = (changes, area) => {
       if (area !== 'sync') return
       if (changes.links) setLinks(changes.links.newValue || [])
-      if (changes.settings) {
-        const s = changes.settings.newValue || {}
-        setNeedsSetup(!s.email?.trim())
-      }
     }
     chrome.storage.onChanged.addListener(onChanged)
     return () => chrome.storage.onChanged.removeListener(onChanged)
@@ -76,7 +64,6 @@ export default function Popup() {
       l.id === id ? { ...l, status: 'completed', completedAt: Date.now() } : l,
     )
     await save(next)
-    await bumpCompletedThisWeek()
     showToast('Marked done')
   }
 
@@ -115,39 +102,12 @@ export default function Popup() {
 
   return (
     <div className="relative flex h-[520px] w-[360px] flex-col bg-surface text-ink">
-      <header className="flex items-center justify-between border-b border-line px-4 py-3">
+      <header className="flex items-center border-b border-line px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Logo size={24} />
           <h1 className="text-[15px] font-semibold tracking-tight">linkdrop</h1>
         </div>
-        <button
-          type="button"
-          onClick={() => chrome.runtime.openOptionsPage()}
-          title="Settings"
-          className="rounded-md p-1.5 text-mute hover:bg-surface-soft hover:text-ink"
-        >
-          <svg viewBox="0 0 20 20" className="size-4" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M11.5 2.4a1 1 0 0 0-1 .9l-.2 1.7a6 6 0 0 0-1.3.5L7.6 4.4a1 1 0 0 0-1.3.1L5 5.8a1 1 0 0 0-.1 1.3l1.1 1.4a6 6 0 0 0-.5 1.3l-1.7.2a1 1 0 0 0-.9 1v2c0 .5.4.9.9 1l1.7.2c.1.5.3.9.5 1.3L4.9 16a1 1 0 0 0 .1 1.3l1.4 1.3c.4.4 1 .4 1.3.1l1.4-1.1c.4.2.8.4 1.3.5l.2 1.7c0 .5.5.9 1 .9h2c.5 0 .9-.4 1-.9l.2-1.7c.5-.1.9-.3 1.3-.5l1.4 1.1c.4.3 1 .3 1.3-.1l1.3-1.4c.4-.3.4-.9.1-1.3l-1.1-1.4c.2-.4.4-.8.5-1.3l1.7-.2c.5-.1.9-.5.9-1v-2c0-.5-.4-.9-.9-1l-1.7-.2a6 6 0 0 0-.5-1.3l1.1-1.4a1 1 0 0 0-.1-1.3L17 4.5a1 1 0 0 0-1.3-.1l-1.4 1.1c-.4-.2-.8-.4-1.3-.5l-.2-1.7a1 1 0 0 0-1-.9h-2zM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
       </header>
-
-      {needsSetup && (
-        <button
-          type="button"
-          onClick={() => chrome.runtime.openOptionsPage()}
-          className="flex items-center justify-between border-b border-warn/40 bg-warn/10 px-4 py-2 text-left text-[12px] text-ink hover:bg-warn/15"
-        >
-          <span>
-            <strong>Finish setup</strong> · add your email to get daily digests
-          </span>
-          <span className="text-mute">→</span>
-        </button>
-      )}
 
       <div className="border-b border-line px-3 pt-2.5">
         <button

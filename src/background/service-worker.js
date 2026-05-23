@@ -1,27 +1,14 @@
-import {
-  getLinks,
-  addLink,
-  getSettings,
-  setSettings,
-  getStats,
-  resetWeeklyStats,
-} from '../lib/storage.js'
+import { addLink } from '../lib/storage.js'
 import { categorize } from '../lib/categorize.js'
-import { sendDigest, buildDailyPayload, buildWeeklyPayload } from '../lib/email.js'
-import { rescheduleAll, DAILY_ALARM, WEEKLY_ALARM } from '../lib/alarms.js'
 
 const CONTEXT_MENU_ID = 'linkdrop:add-page'
 const CONTEXT_MENU_LINK_ID = 'linkdrop:add-link'
 
-chrome.runtime.onInstalled.addListener(async () => {
-  const settings = await getSettings()
-  await rescheduleAll(settings)
+chrome.runtime.onInstalled.addListener(() => {
   setupContextMenus()
 })
 
-chrome.runtime.onStartup.addListener(async () => {
-  const settings = await getSettings()
-  await rescheduleAll(settings)
+chrome.runtime.onStartup.addListener(() => {
   setupContextMenus()
 })
 
@@ -111,75 +98,3 @@ function notify(title, message) {
     // Notification API may be unavailable; ignore.
   }
 }
-
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === DAILY_ALARM) await runDailyDigest()
-  if (alarm.name === WEEKLY_ALARM) await runWeeklyDigest()
-})
-
-async function runDailyDigest({ manual = false } = {}) {
-  const settings = await getSettings()
-  if (!settings.email) {
-    if (manual) throw new Error('Enter your email in Settings first')
-    return
-  }
-  if (!settings.dailyEnabled && !manual) return
-
-  const links = await getLinks()
-  const active = links.filter((l) => l.status === 'active')
-
-  if (active.length === 0) {
-    if (manual) throw new Error('Your queue is empty — drop a link first')
-    return
-  }
-
-  try {
-    await sendDigest({
-      email: settings.email,
-      kind: 'daily',
-      payload: buildDailyPayload(links),
-    })
-    await setSettings({ lastDailySentAt: Date.now() })
-  } catch (err) {
-    if (manual) throw err
-    console.error('[linkdrop] daily digest failed:', err)
-  }
-}
-
-async function runWeeklyDigest() {
-  const settings = await getSettings()
-  if (!settings.weeklyEnabled || !settings.email) return
-  const links = await getLinks()
-  const stats = await getStats()
-  try {
-    await sendDigest({
-      email: settings.email,
-      kind: 'weekly',
-      payload: buildWeeklyPayload(links, stats),
-    })
-    await setSettings({ lastWeeklySentAt: Date.now() })
-    await resetWeeklyStats()
-  } catch (err) {
-    console.error('[linkdrop] weekly digest failed:', err)
-  }
-}
-
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  ;(async () => {
-    try {
-      if (msg?.type === 'reschedule') {
-        const settings = await getSettings()
-        await rescheduleAll(settings)
-        sendResponse({ ok: true })
-      } else if (msg?.type === 'runDaily') {
-        await runDailyDigest({ manual: true })
-        sendResponse({ ok: true })
-      } else {
-        sendResponse({ ok: false, error: 'unknown message' })
-      }
-    } catch (err) {
-      sendResponse({ ok: false, error: String(err?.message || err) })
-    }
-  })()
-  return true
-})
