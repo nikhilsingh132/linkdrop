@@ -24,7 +24,7 @@ export default defineManifest({
     service_worker: 'src/background/service-worker.js',
     type: 'module',
   },
-  permissions: ['storage', 'alarms', 'tabs', 'contextMenus', 'notifications'],
+  permissions: ['storage', 'alarms', 'activeTab', 'contextMenus', 'notifications'],
   host_permissions: [
     'https://script.google.com/*',
     'https://script.googleusercontent.com/*',
