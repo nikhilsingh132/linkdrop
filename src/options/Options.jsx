@@ -16,7 +16,6 @@ export default function Options() {
   const [form, setForm] = useState(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [testing, setTesting] = useState(false)
   const [message, setMessage] = useState(null)
 
   useEffect(() => {
@@ -39,24 +38,6 @@ export default function Options() {
       setMessage({ kind: 'error', text: String(err?.message || err) })
     } finally {
       setSaving(false)
-    }
-  }
-
-  const sendTest = async () => {
-    setTesting(true)
-    setMessage(null)
-    try {
-      await setSettings(form)
-      const res = await chrome.runtime.sendMessage({ type: 'sendTest' })
-      if (res?.ok) {
-        setMessage({ kind: 'success', text: `Test email sent to ${form.email}` })
-      } else {
-        throw new Error(res?.error || 'Unknown error')
-      }
-    } catch (err) {
-      setMessage({ kind: 'error', text: String(err?.message || err) })
-    } finally {
-      setTesting(false)
     }
   }
 
@@ -182,14 +163,6 @@ export default function Options() {
         </button>
         <button
           type="button"
-          onClick={sendTest}
-          disabled={!canSave || testing}
-          className="rounded-lg border border-line px-4 py-2 text-[13px] font-medium text-ink hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {testing ? 'Sending…' : 'Send test email'}
-        </button>
-        <button
-          type="button"
           onClick={runDaily}
           disabled={!canSave}
           className="rounded-lg border border-line px-4 py-2 text-[13px] font-medium text-ink hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50"
@@ -232,13 +205,13 @@ function Toggle({ checked, onChange, label }) {
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 rounded-full transition-colors ${
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-0 p-0 transition-colors ${
           checked ? 'bg-accent' : 'bg-line'
         }`}
       >
         <span
-          className={`absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0.5'
+          className={`absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-4' : 'translate-x-0'
           }`}
         />
       </button>
