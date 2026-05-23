@@ -6,6 +6,7 @@ export default defineManifest({
   name: 'linkdrop',
   version: pkg.version,
   description: 'Drop links to read or watch later. Save, organize, and come back when you are ready.',
+  homepage_url: 'https://github.com/nikhilsingh132/linkdrop',
   action: {
     default_popup: 'index.html',
     default_title: 'linkdrop',

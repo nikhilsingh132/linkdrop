@@ -58,6 +58,16 @@ npm run build   # output goes to dist/
 
 After any code change, re-run `npm run build` and hit the refresh icon for linkdrop on the extensions page.
 
+## Chrome Web Store
+
+Ready-to-upload package and copy-paste listing text:
+
+```bash
+npm run package   # builds dist/ and creates release/linkdrop-v1.0.0.zip
+```
+
+See **[CHROME_WEB_STORE.md](./CHROME_WEB_STORE.md)** for the full submission checklist and dashboard fields.
+
 ## License
 
 MIT

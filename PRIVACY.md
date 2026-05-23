@@ -37,4 +37,4 @@ We do not sell or rent user data. All saved links stay in your browser's Chrome 
 
 ## Contact
 
-For questions about this policy, open an issue on the project's GitHub repository.
+For questions about this policy, open an issue at https://github.com/nikhilsingh132/linkdrop/issues
