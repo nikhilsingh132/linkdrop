@@ -16,6 +16,7 @@ export default function Options() {
   const [form, setForm] = useState(DEFAULT_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [runningDaily, setRunningDaily] = useState(false)
   const [message, setMessage] = useState(null)
 
   useEffect(() => {
@@ -43,12 +44,15 @@ export default function Options() {
 
   const runDaily = async () => {
     setMessage(null)
+    setRunningDaily(true)
     try {
       const res = await chrome.runtime.sendMessage({ type: 'runDaily' })
       if (res?.ok) setMessage({ kind: 'success', text: 'Daily digest triggered' })
       else throw new Error(res?.error || 'Unknown error')
     } catch (err) {
       setMessage({ kind: 'error', text: String(err?.message || err) })
+    } finally {
+      setRunningDaily(false)
     }
   }
 
@@ -164,10 +168,10 @@ export default function Options() {
         <button
           type="button"
           onClick={runDaily}
-          disabled={!canSave}
+          disabled={!canSave || runningDaily}
           className="rounded-lg border border-line px-4 py-2 text-[13px] font-medium text-ink hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Run daily digest now
+          {runningDaily ? 'Sending digest…' : 'Run daily digest now'}
         </button>
       </div>
 
