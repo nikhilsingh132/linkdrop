@@ -205,15 +205,11 @@ function Toggle({ checked, onChange, label }) {
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-0 p-0 transition-colors ${
-          checked ? 'bg-accent' : 'bg-line'
+        className={`inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-0 p-0.5 transition-colors ${
+          checked ? 'justify-end bg-accent' : 'justify-start bg-line'
         }`}
       >
-        <span
-          className={`absolute left-0.5 top-0.5 size-4 rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-4' : 'translate-x-0'
-          }`}
-        />
+        <span className="block size-4 shrink-0 rounded-full bg-white shadow" />
       </button>
     </label>
   )
